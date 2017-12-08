@@ -1,0 +1,315 @@
+svg, img {
+  display: block;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.yn-audio-player {
+  .yn-audio {
+    width: 100%;
+    min-width: 300px;
+    height: 56px;
+    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.07);
+
+    display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+    display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+    display: -ms-flexbox; /* TWEENER - IE 10 */
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-justify-content: space-around;
+    justify-content: space-between;
+
+    -webkit-align-items: center; /* Safari 7.0+ */
+    align-items: center;
+
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 4px;
+    user-select: none;
+    -webkit-user-select: none;
+    background-color: #fff;
+    position: relative;
+    z-index: 3;
+
+    .play-pause-btn {
+      display: none;
+      cursor: pointer;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      background-image: ~"url(https://www.spotlight-online.de/themes/custom/spotlight/images/loading.png)";
+      background-size: cover;
+      background-repeat: no-repeat;
+      animation: spin 0.4s linear infinite;
+    }
+
+    .slider {
+      -moz-flex-grow: 1;
+      -ms-flex-grow: 1;
+      flex-grow: 1;
+      background-color: #D8D8D8;
+      cursor: pointer;
+      position: relative;
+
+      .buffered,
+      .yn-progress {
+        background-color: #004e98; /* #44BFA3 */
+        border-radius: inherit;
+        position: absolute;
+        pointer-events: none;
+      }
+
+      .buffered {
+        background-color: rgba(0, 78, 152, 0.2);
+      }
+
+      .yn-progress .pin {
+        height: 16px;
+        width: 16px;
+        border-radius: 8px;
+        background-color: #004e98; /* #44BFA3 */
+        position: absolute;
+        pointer-events: all;
+        box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.32);
+      }
+    }
+
+    .controls {
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      line-height: 18px;
+      color: #55606E;
+
+      display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+      display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+      display: -ms-flexbox; /* TWEENER - IE 10 */
+      display: -webkit-flex;
+      display: flex;
+
+      -moz-flex-grow: 1;
+      -ms-flex-grow: 1;
+      flex-grow: 1;
+
+      -webkit-justify-content: space-around;
+      justify-content: space-between;
+
+      -webkit-align-items: center; /* Safari 7.0+ */
+      align-items: center;
+
+      margin-left: 24px;
+      margin-right: 24px;
+
+      span {
+        cursor: default;
+      }
+
+      .slider {
+        margin-left: 16px;
+        margin-right: 16px;
+        border-radius: 2px;
+        height: 4px;
+
+        .yn-progress .pin {
+          right: -8px;
+          top: -6px;
+        }
+
+        .buffered,
+        .yn-progress {
+          width: 0;
+          height: 100%;
+        }
+      }
+    }
+
+    .playlist-btn {
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      line-height: 18px;
+      color: #55606E;
+      align-items: center;
+      margin-right: 24px;
+      cursor: pointer;
+    }
+
+    .volume {
+      position: relative;
+
+      .volume-btn {
+        cursor: pointer;
+        height: 24px;
+
+        &.open path {
+          fill: #004e98;
+        }
+      }
+
+      .volume-controls {
+        width: 30px;
+        height: 135px;
+        background-color: rgba(3, 169, 244, 0.4);
+        border-radius: 7px;
+        position: absolute;
+        left: -3px;
+        bottom: 52px;
+
+        -ms-flex-direction: column;
+        flex-direction: column;
+
+        -webkit-align-items: center; /* Safari 7.0+ */
+        align-items: center;
+
+        display: -webkit-box; /* OLD - iOS 6-, Safari 3.1-6 */
+        display: -moz-box; /* OLD - Firefox 19- (buggy but mostly works) */
+        display: -ms-flexbox; /* TWEENER - IE 10 */
+        display: -webkit-flex;
+        display: flex;
+
+        &.hidden {
+          display: none;
+        }
+
+        .slider {
+          margin-top: 12px;
+          margin-bottom: 12px;
+          width: 6px;
+          border-radius: 3px;
+
+          .yn-progress {
+            bottom: 0;
+            height: 100%;
+            width: 6px;
+          }
+
+          .yn-progress .pin {
+            left: -5px;
+            top: -8px;
+          }
+        }
+      }
+    }
+
+    .playlist {
+      margin: 0 15px 15px;
+      box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.07);
+      overflow: hidden;
+      background: #fff;
+      transition: all 0.7s ease-in-out;
+      -webkit-transition: all 0.7s ease-in-out;
+      -moz-transition: all 0.7s ease-in-out;
+      max-height: 250px;
+
+      &.hidden {
+        max-height: 0;
+      }
+
+      ul {
+        margin: 0;
+        padding: 30px 30px 30px 30px;
+        list-style: none;
+        overflow: auto;
+        max-height: 250px;
+
+        li {
+          display: block;
+          margin-bottom: 10px;
+          border-bottom: 1px solid #eee;
+          cursor: pointer;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          &:hover {
+            background: #f4f4f4;
+          }
+
+          span {
+            float: right;
+          }
+        }
+      }
+
+      .playlist-collapse {
+        text-align: center;
+        cursor: pointer;
+        background: #f5f5f5;
+      }
+    }
+  }
+
+  &.no-flex {
+    display: table;
+    width: 100%;
+
+    .yn-audio {
+      display: table-row;
+      padding: 0;
+
+      .loading,
+      .play-pause-btn,
+      .volume,
+      .controls {
+        display: table-cell;
+        vertical-align: middle;
+      }
+
+      .play-pause-btn {
+        padding: 15px 0 15px 25px;
+      }
+
+      .volume {
+        padding: 15px 25px 15px 0;
+      }
+      .controls {
+        width: 100%;
+        line-height: 0;
+
+        .current-time,
+        .total-time {
+          display: table-cell;
+          width: 10%;
+          text-align: center;
+          padding: 0 20px;
+          vertical-align: middle;
+
+          @media (max-width: 767px) {
+            width: 25%;
+          }
+        }
+
+        .slider {
+          display: table-cell;
+        }
+      }
+
+      .volume .volume-btn {
+        vertical-align: middle;
+        display: inline-block;
+        height: 22px;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotateZ(0);
+  }
+  to {
+    transform: rotateZ(1turn);
+  }
+}
