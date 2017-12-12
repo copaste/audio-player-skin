@@ -152,7 +152,7 @@
             ]);
 
             this.elements.playerWrapper = createEl('div', {
-                className: 'yn-audio-player' + (this._flexboxSuppoted ? '':'no-flex')
+                className: 'yn-audio-player' + (this._flexboxSuppoted ? '':' no-flex')
             }, {}, [
                 this.elements.playerContainer
             ]);
@@ -364,7 +364,7 @@
         this.dragging = false;
         this.dragStartPos = 0;
         this._currentPosition = 0;
-        this._direction = sliderElement.dataset.direction || 'horizontal';
+        this._direction = sliderElement.getAttribute('data-direction') || 'horizontal';
         this._onDraggCallback = [];
 
         this._onMouseDown = this._onMouseDown.bind(this);
@@ -477,10 +477,9 @@
         el = document.createElement(tagName);
 
         Object.getOwnPropertyNames(properties).forEach(function(propName) {
-            const val = properties[propName];
+            var val = properties[propName];
 
             if (propName.indexOf('aria-') !== -1 || propName === 'role' || propName === 'type') {
-                console.loplayerSkin.warn('Attempting to set ' + propName + ' to ' + val + '.');
                 el.setAttribute(propName, val);
             } else if (propName === 'textContent') {
                 el.textContent = val;
