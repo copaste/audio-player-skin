@@ -449,6 +449,9 @@
                 this._currentPosition = pinPos;
                 this._runCallbacks(pinPos, this._direction === 'horizontal' ? ev.clientX : ev.clientY);
             }
+
+            ev.preventDefault();
+            return false;
         },
 
         _onMouseUp: function (ev) {
