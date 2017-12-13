@@ -10,6 +10,7 @@
             progressPin: null,
             progressSlider: null,
             progressBuffer: null,
+            progressTooltip: null,
             volumeControls: null,
             volumeContainer: null,
             volumeBtn: null,
@@ -65,15 +66,26 @@
 
             this.elements.progressPin = createEl('div', {
                 className: 'pin'
-            }, {'data-method': 'rewind'});
+            });
 
             this.elements.progressSlider = createEl('div', {
                 className: 'yn-progress'
             }, {}, this.elements.progressPin);
 
-            this.elements.progressSliderContainer = createEl('div', {
-                className: 'slider'
-            }, {'data-direction': 'horizontal'}, [this.elements.progressSlider, this.elements.progressBuffer]);
+            this.elements.progressTooltip = createEl('span', {
+                className: 'yn-audio-player-tooltip'
+            });
+
+            this.elements.progressSliderContainer = createEl(
+                'div',
+                { className: 'slider' },
+                {'data-direction': 'horizontal'},
+                [
+                    this.elements.progressSlider,
+                    this.elements.progressBuffer,
+                    this.elements.progressTooltip
+                ]
+            );
 
             this.elements.totalTime = createEl('span', {
                 className: 'total-time',
@@ -151,13 +163,14 @@
                 this.elements.volumeContainer
             ]);
 
-            this.elements.playerWrapper = createEl('div', {
-                className: 'yn-audio-player' + (this._flexboxSuppoted ? '':' no-flex')
-            }, {}, [
-                this.elements.playerContainer
-            ]);
+            this.elements.playerWrapper = createEl(
+                'div',
+                { className: 'yn-audio-player' + (this._flexboxSuppoted ? '':' no-flex') },
+                {},
+                [this.elements.playerContainer]
+            );
 
-            this.elements.volumeBtn.addEventListener('click', function () {
+            this.elements.volumeBtn.addEventListener('click', function (ev) {
                 this.classList.toggle('open');
                 _self.elements.volumeControls.classList.toggle('hidden');
 
@@ -171,7 +184,22 @@
                     _self.elements.volumeControls.style.bottom = '35px';
                     _self.elements.volumeControls.style.left = '-3px';
                 }
-            });
+            }, false);
+
+            this.elements.progressSliderContainer.addEventListener('mouseover', function(ev) {
+                var rect = this.getBoundingClientRect(),
+                    size = this.clientWidth,
+                    offset = ev.clientX - rect.left,
+                    time = parseInt(_self._trackLength * (offset / size));
+
+                _self.elements.progressTooltip.classList.add('visible');
+                _self.elements.progressTooltip.textContent = _self._formatTime(time);
+                _self.elements.progressTooltip.style.left = offset + 'px';
+            }, false);
+
+            this.elements.progressSliderContainer.addEventListener('mouseleave', function(ev) {
+                _self.elements.progressTooltip.classList.remove('visible');
+            }, false);
 
             this.elements.playPauseBtn.addEventListener('click', function (ev) {
                 if (_self._playerState === YAudioPlayerSkin.STATE_PLAY) {
@@ -180,7 +208,7 @@
                 else {
                     _self._updatePlayerState(YAudioPlayerSkin.STATE_PLAY);
                 }
-            });
+            }, false);
 
             this._trackProgressControl = new CreateSlider(this.elements.progressSliderContainer, this.elements.progressPin);
             this._trackProgressControl.onChange(function (progress) {
@@ -372,8 +400,10 @@
         this._onMouseUp = this._onMouseUp.bind(this);
 
         this.pinElement.addEventListener('mousedown', this._onMouseDown, false);
+        this.pinElement.addEventListener('touchstart', this._onMouseDown, false);
         this.sliderElement.addEventListener('click', this._onMouseMove, false);
         window.addEventListener('mouseup', this._onMouseUp, false);
+        window.addEventListener('touchend', this._onMouseUp, false);
     }
 
     CreateSlider.prototype = {
@@ -393,13 +423,16 @@
         },
         destroy: function () {
             this.pinElement.removeEventListener('mousedown', this._onMouseDown, false);
+            this.pinElement.removeEventListener('touchstart', this._onMouseDown, false);
             this.sliderElement.removeEventListener('click', this._onMouseMove, false);
             window.removeEventListener('mouseup', this._onMouseUp, false);
+            window.removeEventListener('touchend', this._onMouseUp, false);
         },
 
         _onMouseDown: function (ev) {
             if (!this.dragging) {
                 window.addEventListener('mousemove', this._onMouseMove, false);
+                window.addEventListener('touchmove', this._onMouseMove, false);
 
                 this.draggedElement = ev.target;
                 this.dragging = true;
@@ -420,6 +453,8 @@
 
         _onMouseUp: function (ev) {
             window.removeEventListener('mousemove', this._onMouseMove, false);
+            window.removeEventListener('touchmove', this._onMouseMove, false);
+
             this.dragging = false;
         },
 
