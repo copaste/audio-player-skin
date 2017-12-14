@@ -1,7 +1,7 @@
 (function (window, document) {
     'use strict';
 
-    function YAudioPlayerSkin () {
+    function YAudioPlayerSkin (audioUrl, audioName) {
         this.elements = {
             playerContainer: null,
             loader: null,
@@ -29,7 +29,9 @@
             trackChanged: []
         };
 
-        this._flexboxSuppoted = typeof document.createElement("p").style.flex !== 'undefined';
+        this._audioUrl = audioUrl || null;
+        this._audioName = audioName || 'Default';
+        this._flexboxSupported = typeof document.createElement("p").style.flex !== 'undefined';
         this._playerState = YAudioPlayerSkin.STATE_UNLOADED;
         this._trackLength = 0;
         this._currentTime = 0;
@@ -105,7 +107,7 @@
                 className: 'playlist-btn',
                 innerHTML: [
                     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">',
-                    '<path fill="#566574" fill-rule="evenodd" d="M17.016 12.984l4.969 3-4.969 3v-6zM2.016 15v-2.016h12.984v2.016h-12.984zM18.984 5.016v1.969h-16.969v-1.969h16.969zM18.984 9v2.016h-16.969v-2.016h16.969z"></path>',
+                        '<path fill="#566574" fill-rule="evenodd" d="M17.016 12.984l4.969 3-4.969 3v-6zM2.016 15v-2.016h12.984v2.016h-12.984zM18.984 5.016v1.969h-16.969v-1.969h16.969zM18.984 9v2.016h-16.969v-2.016h16.969z"></path>',
                     '</svg>'].join('')
             });
 
@@ -119,13 +121,13 @@
                 className: 'volume-btn',
                 innerHTML: [
                     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">',
-                    '<path fill="#566574" fill-rule="evenodd" d="M14.667 0v2.747c3.853 1.146 6.666 4.72 6.666 8.946 0 4.227-2.813 7.787-6.666 8.934v2.76C20 22.173 24 17.4 24 11.693 24 5.987 20 1.213 14.667 0zM18 11.693c0-2.36-1.333-4.386-3.333-5.373v10.707c2-.947 3.333-2.987 3.333-5.334zm-18-4v8h5.333L12 22.36V1.027L5.333 7.693H0z" id="speaker"></path>',
+                        '<path fill="#566574" fill-rule="evenodd" d="M14.667 0v2.747c3.853 1.146 6.666 4.72 6.666 8.946 0 4.227-2.813 7.787-6.666 8.934v2.76C20 22.173 24 17.4 24 11.693 24 5.987 20 1.213 14.667 0zM18 11.693c0-2.36-1.333-4.386-3.333-5.373v10.707c2-.947 3.333-2.987 3.333-5.334zm-18-4v8h5.333L12 22.36V1.027L5.333 7.693H0z" id="speaker"></path>',
                     '</svg>'].join('')
             });
 
             this.elements.volumePin = createEl('div', {
                 className: 'pin'
-            }, {'data-method': 'changeVolume'});
+            });
 
             this.elements.volumeProgress = createEl('div', {
                 className: 'yn-progress'
@@ -150,7 +152,7 @@
                 className: 'play-pause-btn',
                 innerHTML: [
                     '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="24" viewBox="0 0 18 24">',
-                    '<path fill="#566574" fill-rule="evenodd" d="M18 12L0 24V0" class="play-pause-icon" id="playPause"></path>' +
+                        '<path fill="#566574" fill-rule="evenodd" d="M18 12L0 24V0" class="play-pause-icon" id="playPause"></path>',
                     '</svg>'].join('')
             }, {});
 
@@ -165,7 +167,7 @@
 
             this.elements.playerWrapper = createEl(
                 'div',
-                { className: 'yn-audio-player' + (this._flexboxSuppoted ? '':' no-flex') },
+                { className: 'yn-audio-player' + (this._flexboxSupported ? '':' no-flex') },
                 {},
                 [this.elements.playerContainer]
             );
@@ -222,6 +224,8 @@
                 _self._runCallbacks('volumeChange', volume);
             });
 
+            this.addToPlaylist(this._audioUrl, this._audioName);
+
             return this.elements.playerWrapper;
         },
         setPlayerState: function (state) {
@@ -270,37 +274,65 @@
         onTrackChange: function (cb) {
             this._callbacks.trackChanged.push(cb);
         },
-        addToPlaylist: function (name, audioUrl) {
+        addToPlaylist: function (audioUrl, name) {
             var _self = this;
             var audio = new Audio(audioUrl);
+            var index = this._playlistTracks.length;
             var canPlayCb = function (ev) {
                 var audioLen = _self._formatTime(audio.duration);
-                var item = createEl('li', { innerHTML: name + '<span>' + audioLen + '</span>' });
+                var item = createEl(
+                    'li',
+                    { innerHTML: name + '<span>' + audioLen + '</span>', className: index===0 ? 'active' : '' },
+                    { 'data-index': index }
+                );
 
-                _self.elements.playlist.firstElementChild.appendChild(item);
+                _self._playlistTracks[index].duration = audio.duration;
 
-                item.addEventListener('dblclick', function (ev) {
-                    _self._runCallbacks('trackChanged', audio);
-                });
+                // Append track to playlist
+                if (_self.elements.playlist.firstElementChild.children[index]) {
+                    _self.elements.playlist.firstElementChild.insertBefore(item, _self.elements.playlist.firstElementChild.children[index]);
+                }
+                else {
+                    _self.elements.playlist.firstElementChild.appendChild(item);
+                }
 
-                this.removeEventListener('canplay', canPlayCb);
+                // Remove `loadedmetadata` listener when the element has appended to the list
+                this.removeEventListener('loadedmetadata', canPlayCb);
+                // Remove it itself
+                this.remove();
             };
 
-            if (this._playlistTracks.length === 0) {
+            if (this._playlistTracks.length === 2) {
                 this.elements.controlsContainer.parentNode.insertBefore(this.elements.playlistBtn, this.elements.controlsContainer.nextSibling);
                 this.elements.playerContainer.parentNode.insertBefore(this.elements.playlist, this.elements.playerContainer.nextSibling);
 
                 this.elements.playlistBtn.addEventListener('click', function (ev) {
                     _self.elements.playlist.classList.toggle('hidden');
                 });
+
+                this.elements.playlist.addEventListener('dblclick', function (ev) {
+                    var target = ev.target.parentElement.tagName === 'LI' ? ev.target.parentElement : ev.target;
+                    var trackIndex = target.getAttribute('data-index');
+
+                    // Run callbacks
+                    _self._runCallbacks('trackChanged', _self._playlistTracks[trackIndex]);
+                    // Change player state
+                    _self._updatePlayerState(YAudioPlayerSkin.STATE_PAUSED);
+
+                    // Set .active class for the current track
+                    _self.elements.playlist.firstElementChild.getElementsByClassName('active')[0].classList.remove('active');
+                    _self.elements.playlist.firstElementChild.children[trackIndex].classList.add('active');
+                });
             }
 
-            audio.addEventListener('canplay', canPlayCb);
+            audio.addEventListener('loadedmetadata', canPlayCb);
 
             this._playlistTracks.push({
                 name: name,
-                audio: audio
+                url: audioUrl
             });
+
+            return this._playlistTracks.slice(0);
         },
         _updatePlayerState: function (state) {
             this._playerState = state || YAudioPlayerSkin.STATE_UNLOADED;

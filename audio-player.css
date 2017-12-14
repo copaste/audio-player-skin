@@ -209,6 +209,9 @@ body {
   border-bottom: 1px solid #eee;
   cursor: pointer;
 }
+.yn-audio-player .playlist ul li.active {
+  background: rgba(0, 78, 152, 0.1);
+}
 .yn-audio-player .playlist ul li:last-child {
   border-bottom: none;
 }
